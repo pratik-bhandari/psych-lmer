@@ -1,0 +1,130 @@
+---
+title: "LMER Tutorial"
+author: "Pratik Bhandari"
+date: "2019-10-11 (last revised: `r format(Sys.time())`)"
+output: 
+    html_notebook:
+        toc: yes
+        toc_depth: 4
+        number_sections: yes
+        # toc_float: TRUE
+        toc_float:
+          collapsed: FALSE
+          smooth_scroll: TRUE
+# editor_options: 
+#   chunk_output_type: console
+editor_options: 
+  chunk_output_type: inline
+---
+
+Install packages
+```{r}
+library("here")
+library("ggplot2")
+```
+
+
+# Tutorial 1: Hands-on exercise
+
+Conceptually, a linear model would be:
+`dependent variable ~ fixed effect + random effect`
+or,
+If we take a real life like example:
+`pitch ~ gender + error term`
+
+Create datasets based on Bodo Winter's tutorials:
+- first based on Tutorial 1
+- then on Tutorial 2
+
+# Male-female voice pitch
+
+```{r}
+pitch = c(233,204,242,130,112,142)
+sex = c(rep("female",3),rep("male",3))
+my.df = data.frame(sex,pitch)
+```
+
+Check the dataset:
+```{r}
+my.df
+```
+
+## Now form a linear model (sex-pitch dataset)
+
+- categorical variable as a fixed effect
+
+```{r}
+xmdl = lm (pitch ~ sex, my.df)
+```
+
+This model is 'pitch as a function of sex'.
+
+Now, check the elements of model by looking at its summary.
+```{r}
+summary(xmdl)
+```
+
+The 'intercept'term is the estimate of pitch of 'female' as 'f...' comes before 'm...' in alphabetic order and R considers alphabetic order here. On the other hand, the 'sexmale'is 'slope', i.e. the value that must be added for every one unit increase in fixed effects. In this case, it means that negative 98.33 must be added to 'sexfemale' to get the estimate of pitch of male voice.
+Confirm this in the following:
+```{r}
+mean(my.df[my.df$sex=='female',]$pitch) #this is the mean (or the estimate) of female's voice
+mean(my.df[my.df$sex=='male',]$pitch)
+```
+These two values are similar to the intercept and 'intercept minus slope' which are the mean estimates of female and male pitch respectively.
+
+## Plot lm
+```{r}
+library(ggplot2)
+ggplot(aes(x = sex, y = pitch), data = my.df) + 
+  geom_point() +
+  geom_smooth(method = 'lm', color='red')
+  
+# plot(pitch~sex, data = my.df)
+# abline(xmdl)
+```
+
+
+# Age wise voice pitch
+
+- continuous variable as fixed effects
+
+```{r}
+age = c(14,23,35,48,52,67)
+pitch = c(252,244,240,233,212,204)
+my.df = data.frame(age,pitch)
+my.df
+```
+
+## Plot lm
+```{r}
+xmdl = lm (pitch ~ age, my.df)
+```
+
+This model is 'pitch as a function of age'.
+
+Now, check the elements of model by looking at its summary.
+```{r}
+summary(xmdl)
+```
+
+The intercept value 267.08 is the mean pitch of a person of age zero. This shows that intercept can sometimes be meaningless.
+Slope (here 'age' in the second line) means that for every one unit increase in age (i.e. for every one year increase in age) pitch increases by negative 0.9099.
+
+# Some of few assumptions of a linear model
+
+## Linearity
+
+Long story short, check for residual plots.
+```{r}
+plot(fitted(xmdl),residuals(xmdl))
+```
+
+Since there are very few data points, this residual plot does not show a pattern. However, with sufficient data points, it can be seen that residual plot can be linear or non-linear (e.g. curvilinear). If it is non-linear, then the linear model cannot be fitted; transformations have to be applied to make it linear. It might be possible that the data is categorical or binomial variables.
+
+...
+There are many other points to be considered. Check the [tutorial](https://github.com/neurofreakpb/psych-lmer/tree/master/tutorial-files) by Bodo Winter for details.
+
+# Save
+```{r,echo=TRUE}
+save.image(here("psych-lmer.RData"))
+```
