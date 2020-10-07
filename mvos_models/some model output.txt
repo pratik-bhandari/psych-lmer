@@ -1,0 +1,49 @@
+> model11 <- glmer(bin_ans2 ~ noise + scale(age) + contrastvc:scale(age)
++                 + scale(trial) + contrastvc
++                 + (1|workerid)
++                 + (1|item3),
++                 family = binomial, data=lrHP,
++                 control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+
+> #adding random slopes leads to non convergence
+> summary(model11)
+Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) ['glmerMod']
+ Family: binomial  ( logit )
+Formula: bin_ans2 ~ noise + scale(age) + contrastvc:scale(age) + scale(trial) +  
+    contrastvc + (1 | workerid) + (1 | item3)
+   Data: lrHP
+Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
+
+     AIC      BIC   logLik deviance df.resid 
+   247.8    302.4   -114.9    229.8     3178 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-6.0376  0.0009  0.0023  0.0033  1.2071 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ item3    (Intercept) 52.287   7.231   
+ workerid (Intercept)  8.866   2.978   
+Number of obs: 3187, groups:  item3, 240; workerid, 93
+
+Fixed effects:
+                       Estimate Std. Error z value Pr(>|z|)   
+(Intercept)            14.22005    5.48577   2.592  0.00954 **
+noise-5SNR             -2.69856    1.31735  -2.048  0.04051 * 
+noise0SNR              -2.58898    1.59547  -1.623  0.10465   
+scale(age)             -0.18397    0.60879  -0.302  0.76251   
+scale(trial)            0.05783    0.33664   0.172  0.86360   
+contrastvcV             0.24928    1.30452   0.191  0.84845   
+scale(age):contrastvcV  0.40313    0.86934   0.464  0.64285   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) n-5SNR ns0SNR scl(g) scl(t) cntrsV
+noise-5SNR  -0.816                                   
+noise0SNR   -0.890  0.879                            
+scale(age)  -0.440  0.316  0.362                     
+scale(tril)  0.166 -0.189 -0.188 -0.064              
+contrastvcV -0.089 -0.027 -0.001  0.046  0.017       
+scl(g):cntV  0.653 -0.500 -0.563 -0.631  0.144 -0.013

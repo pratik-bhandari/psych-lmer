@@ -1,0 +1,50 @@
+> model10 <- glmer(bin_ans2 ~ noise + scale(age) + contrastvc:scale(age)
++                 + scale(trial) + contrastvc
++                 + (1|workerid)
++                 + (1+noise|item3),
++                 family = binomial, data=lrLP,
++                 control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+
+> summary(model10)
+Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) ['glmerMod']
+ Family: binomial  ( logit )
+Formula: bin_ans2 ~ noise + scale(age) + contrastvc:scale(age) + scale(trial) +  
+    contrastvc + (1 | workerid) + (1 + noise | item3)
+   Data: lrLP
+Control: glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
+
+     AIC      BIC   logLik deviance df.resid 
+  2290.1   2374.1  -1131.0   2262.1     2981 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-7.2633 -0.2366 -0.0265  0.2392  6.0484 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr     
+ item3    (Intercept) 2.744    1.657             
+          noise-5SNR  2.383    1.544    0.57     
+          noise0SNR   3.374    1.837    0.32 0.87
+ workerid (Intercept) 3.720    1.929             
+Number of obs: 2995, groups:  item3, 240; workerid, 93
+
+Fixed effects:
+                       Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              1.6905     0.2947   5.737 9.66e-09 ***
+noise-5SNR              -6.2775     0.3885 -16.159  < 2e-16 ***
+noise0SNR               -4.7399     0.3044 -15.574  < 2e-16 ***
+scale(age)              -0.5333     0.2218  -2.405   0.0162 *  
+scale(trial)             0.4620     0.0752   6.144 8.06e-10 ***
+contrastvcV              1.4354     0.3164   4.537 5.70e-06 ***
+scale(age):contrastvcV  -0.3387     0.1405  -2.411   0.0159 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) n-5SNR ns0SNR scl(g) scl(t) cntrsV
+noise-5SNR  -0.199                                   
+noise0SNR   -0.225  0.679                            
+scale(age)   0.085  0.093  0.099                     
+scale(tril)  0.079 -0.250 -0.231 -0.046              
+contrastvcV -0.357 -0.179 -0.214 -0.037  0.074       
+scl(g):cntV -0.021  0.089  0.082 -0.282 -0.032 -0.059
