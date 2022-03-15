@@ -1,0 +1,283 @@
+---
+title: "Sample size estimation for an effect size of interest: GLMM"
+short_title: "dfa"
+author: "Pratik Bhandari"
+institute: "Psycholinguistic experiment analysis and design"
+date: "3/16/2022"
+output:
+  beamer_presentation:
+    incremental: false
+    # slide_level: 2
+    theme: 'CambridgeUS'
+    colortheme: 'dolphin'
+    highlight: 'zenburn'
+header-includes:
+  - \AtBeginDocument{\title[Sample size estimation]{Sample size estimation for an effect size of interest in a GLMM design}}
+  - \AtBeginDocument{\institute[UdS]{Psycholinguistic experiment analysis and design}}
+  
+---
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r setupX, eval=TRUE, echo=FALSE, cache=TRUE}
+load('power.RData')
+```
+
+# Data and setup
+
+## Setup
+
+Set seed and load packages.
+
+```{r setup2, cache=TRUE, eval=FALSE, echo=TRUE}
+set.seed(2022)
+
+library(tidyr);
+library(dplyr);
+library(ggplot2);
+library(simr)
+```
+
+## Create a dataset
+
+- A dataset from a hypothetical experiment
+- Let's assume this dataset is a real one collected from a pilot study.
+<!-- > - Ignoring any critiques of *using data from pilot study* in power analyses -->
+
+## The dataset
+
+-   Within group design, with n=26
+
+-   2 conditions:
+
+    -   Noise: Mild and Severe
+    
+    -   Cloze (=predictability): High and Low
+    
+-   10 items in a repeated measures design
+
+- High and Low cloze sentences are embedded in\
+Mild and Severe background noise.
+
+- 10items * 4conditions = 40 trials for each of the 26 participants.\
+<!-- Thus, there are a total of 1040 rows. -->
+
+## The dataset
+
+```{r fakedata, eval=FALSE, echo=TRUE, cache=FALSE}
+dat <- expand_grid(
+  participants = paste(letters, 1:26, sep = '_'),
+  noise = c('mild', 'severe'),
+  cloze = c('high', 'low'),
+  item = paste('item', 1:10, sep = '_'))
+dat$acc <- sample(c(0,1), nrow(dat), replace = T)
+
+# Assign class to the variables of interest:
+dat$noise <- as.factor(dat$noise)
+dat$cloze <- as.factor(dat$cloze)
+dat$acc <- as.integer(dat$acc)
+```
+
+
+## The dataset
+
+- Note that the experimental conditions are just labels.
+- Participants' response accuracy in High cloze sentences does not necessarily have to be higher than Low cloze sentences.
+    - Same thing for the noise condition (Severe vs. Mild)
+
+## Data summary
+
+```{r plot-cloze, cache=TRUE, eval=TRUE, echo=FALSE}
+dat %>% 
+    group_by(.,cloze) %>%
+    summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>%
+    mutate(total=totalCorr+totalIncorr,
+           accuracy=round(((totalCorr/(totalCorr+totalIncorr))*100), digits=2)) %>% 
+    ggplot(aes(x=cloze, y=accuracy)) +
+    geom_col() +
+  labs(title = 'Accuracy at High cloze < Low cloze')
+```
+
+## Data summary
+
+```{r plot-noise, cache=TRUE, eval=TRUE, echo=FALSE}
+dat %>% 
+    group_by(.,noise) %>%
+    summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>%
+    mutate(total=totalCorr+totalIncorr,
+           accuracy=round(((totalCorr/(totalCorr+totalIncorr))*100), digits=2)) %>% 
+    ggplot(aes(x=noise, y=accuracy)) +
+    geom_col() +
+  labs(title = 'Accuracy at Mild noise > Severe noise')
+```
+
+## Data summary
+
+```{r plot-grouped, cache=TRUE, eval=TRUE, echo=FALSE}
+dat %>% 
+  group_by(., noise,cloze) %>%
+  summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>% #.groups is experimental, so mind it in future versions of dplyr
+  mutate(total=totalCorr+totalIncorr,
+         accuracy=round(((totalCorr/(totalCorr+totalIncorr))*100), digits=2)) %>% 
+  ggplot(aes(x=noise, y=accuracy)) +
+  geom_bar(aes(fill=cloze),
+           position = 'dodge',
+           stat='identity') +
+  labs(title = 'Accuracy across all conditions') +
+  scale_fill_manual(values = c('#90A4AE', '#BDBDBD'))
+```
+
+
+# Model
+
+## Assign contrast
+
+- Treatment contrasts for both *Cloze* and *Noise*
+
+```{r contrasts, eval=FALSE, echo=TRUE, cache=FALSE}
+contrasts(dat$cloze) <- contr.treatment(2) # High cloze is the baseline
+contrasts(dat$noise) <- contr.treatment(2) # Mild noise is the baseline
+```
+
+- High cloze, Mild noise conditions in the Intercept
+
+## Run a GLMM
+
+> - An intercept-only model, with all the main effects and interaction in the fixed effects term.
+
+```{r m0, eval=FALSE, cache=FALSE, echo=TRUE}
+m0 <- glmer(acc ~ 1 + (cloze + noise + cloze:noise) +
+                   (1 | participants) + (1 | item), 
+                 data=dat, family = "binomial", 
+                 control = glmerControl(calc.derivs = FALSE,
+                                        optimizer="bobyqa",
+                                        optCtrl = list(maxfun=1e6)),
+                 nAGQ = 0, na.action = na.exclude)
+```
+
+> - Is this an appropriate model for a repeated measures design?
+
+## Model summary
+
+```{r m0_summary, eval=TRUE, echo=TRUE, cache=TRUE}
+summary(m0)$coef
+```
+
+Remember that High cloze and Mild noise conditions are the reference levels.
+
+## Observed effect size
+
+- Interest: Noise condition, i.e., `noise2`
+<!-- - The observed effect size in log odds scale is $-0.047$. -->
+
+```{r obs_eff_size, eval=TRUE, echo=TRUE, cache=TRUE}
+fixef(m0)[3] #fixef(m0)['noise2']
+```
+
+- The accuracy at Severe noise is lower than at Mild noise, although statistically not significant.
+
+## Expected effect size
+
+- Say, we expect the main effect of noise to be 0.05.
+- Then, we assign this **effect size of interest** to the model.
+
+```{r expected_eff_size, eval=FALSE, echo=TRUE, cache=TRUE}
+fixef(m0)['noise2'] <- 0.05 #changed from -0.04701666 to 0.05
+
+# If I assume the effect size will not change in the "real data", then I'll run:
+# `fixef(m0)['noise2'] <- fixef(m0)['noise2']` instead.
+```
+
+# Power analyses
+
+## Increase sample size
+
+- We want to find out what the power is when the sample size is increased up to a certain number, e.g., n=160.
+
+```{r simulation_vars, echo=TRUE, eval=FALSE, cache=FALSE}
+N_tar_grid    <- seq(32, 160, by = 32) # 32, 64, 96, 128, 160
+# A vector of five which we'll use later
+
+fit_ext_simr0  <- simr::extend(m0, #increases sample size for 'm0'
+                              along = "participants",
+                              n = max(N_tar_grid)
+                              )
+```
+
+- `nrow(getData(fit_ext_simr0))` = 6400
+- `nrow(getData(m0))` = 1040
+
+## Power analysis
+
+- To visualize the power at different sample sizes
+
+- Power analyses from the existing model with the extended data:
+
+```{r powersim, cache=FALSE, eval=FALSE, echo=TRUE}
+B_boot <- 100 # number of boot repetitions within one experiment, one setup;
+# recommended: at least 1000 simulations
+
+noise_power0 <- simr::powerSim(fit_ext_simr0,
+                               nsim = B_boot,
+                               progress = TRUE,
+                               test = fixed('noise2', 'z'))
+```
+
+- What is and why z test?
+
+## Power analysis
+
+```{r existing_power, echo=TRUE, eval=TRUE, cache=TRUE}
+noise_power0
+```
+
+- The power to reject the null hypothesis is about 5%.
+
+- Note that this power analysis was performed at the sample size of $160$.
+
+<!-- Next, we’ll simulate the power across different sample sizes to see if any of the sample sizes can provide 80% power for the effect size we specified above. -->
+
+## Power analysis and power curve
+
+- Estimate power across a pre-specified range of sample sizes.
+
+- Check if any of the pre-specified sample sizes provides 80% power for the effect size of interest.
+
+```{r get_powercurve, echo=TRUE, eval=FALSE, cache=TRUE}
+noise_powercurve0 <- simr::powerCurve(fit_ext_simr0,
+                            along = 'participants',
+                            nsim = B_boot,
+                            breaks = N_tar_grid, #seq(32, 160, by = 32)
+                            progress = TRUE, 
+                            test = fixed('noise2', 'z'))
+```
+
+## Power curve
+
+- The power for `noise` at different pre-specified sample sizes:
+
+```{r table_powercure, eval=TRUE, cache=TRUE, echo=TRUE}
+noise_powercurve0
+```
+
+## Power curve
+
+```{r powercurve, echo=FALSE, eval=TRUE, cache=TRUE, fig.cap="A typical powercurve.", out.width = '100%'}
+knitr::include_graphics("power-curve.jpeg")
+```
+
+## Problems with the analysis
+
+- Problem 1: None of the pre-specified sample sizes have >80% power
+- Problem 2: Power for n=99 > Power for n=127
+
+## Sources of the problems
+
+- Not enough simulations: Some sets of simulations might be poor fit
+
+## Test slide
+
+> - Eat eggs
+> - Drink coffee
