@@ -1,20 +1,26 @@
 ---
-title: "Sample size estimation for an effect size of interest: GLMM"
-short_title: "dfa"
+title: 'See below in `header-includes`'
 author: "Pratik Bhandari"
-institute: "Psycholinguistic experiment analysis and design"
-date: "3/16/2022"
+date: "16/03/2022"
 output:
+  # ioslides_presentation:
+  #   incremental: no
+  #   highlight: zenburn
   beamer_presentation:
-    incremental: false
-    # slide_level: 2
-    theme: 'CambridgeUS'
-    colortheme: 'dolphin'
-    highlight: 'zenburn'
+    incremental: yes
+    slide_level: 2
+    theme: CambridgeUS
+    colortheme: dolphin
+    highlight: zenburn
+  # slidy_presentation:
+  #   incremental: no
+  #   highlight: zenburn
+institute: See below
+toc: yes
 header-includes:
-  - \AtBeginDocument{\title[Sample size estimation]{Sample size estimation for an effect size of interest in a GLMM design}}
-  - \AtBeginDocument{\institute[UdS]{Psycholinguistic experiment analysis and design}}
-  
+- \AtBeginDocument{\title[Sample size estimation]{Sample size estimation for an effect
+  size of interest in a GLMM design}}
+- \AtBeginDocument{\institute[UdS]{Psycholinguistic experiment analysis \& design (PLEAD), vd-mit}}
 ---
 
 ```{r setup1, include=FALSE}
@@ -31,7 +37,7 @@ load('power.RData')
 
 Set seed and load packages.
 
-```{r setup2, cache=TRUE, eval=FALSE, echo=TRUE}
+```{r setup2, cache=TRUE, eval=TRUE, echo=TRUE}
 set.seed(2022)
 
 library(tidyr);
@@ -42,8 +48,7 @@ library(simr)
 
 ## Create a dataset
 
-- A dataset from a hypothetical experiment
-- Let's assume this dataset is a real one collected from a pilot study.
+- Data from a [hypothetical] pilot experiment
 <!-- > - Ignoring any critiques of *using data from pilot study* in power analyses -->
 
 ## The dataset
@@ -51,10 +56,10 @@ library(simr)
 -   Within group design, with n=26
 
 -   2 conditions:
-
-    -   Noise: Mild and Severe
-    
-    -   Cloze (=predictability): High and Low
+  
+    - Noise: Mild and Severe
+  
+    - Cloze (=predictability): High and Low
     
 -   10 items in a repeated measures design
 
@@ -80,6 +85,12 @@ dat$cloze <- as.factor(dat$cloze)
 dat$acc <- as.integer(dat$acc)
 ```
 
+## The dataset
+```{r fakedata-viz, eval=TRUE, echo=FALSE, cache=TRUE}
+# head(dat)
+dat
+```
+
 
 ## The dataset
 
@@ -89,7 +100,7 @@ dat$acc <- as.integer(dat$acc)
 
 ## Data summary
 
-```{r plot-cloze, cache=TRUE, eval=TRUE, echo=FALSE}
+```{r plot-cloze, cache=TRUE, eval=TRUE, echo=FALSE, out.width='95%'}
 dat %>% 
     group_by(.,cloze) %>%
     summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>%
@@ -97,12 +108,13 @@ dat %>%
            accuracy=round(((totalCorr/(totalCorr+totalIncorr))*100), digits=2)) %>% 
     ggplot(aes(x=cloze, y=accuracy)) +
     geom_col() +
-  labs(title = 'Accuracy at High cloze < Low cloze')
+  labs(title = 'Accuracy at High cloze < Low cloze',
+       x='Cloze')
 ```
 
 ## Data summary
 
-```{r plot-noise, cache=TRUE, eval=TRUE, echo=FALSE}
+```{r plot-noise, cache=TRUE, eval=TRUE, echo=FALSE, out.width='95%'}
 dat %>% 
     group_by(.,noise) %>%
     summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>%
@@ -110,12 +122,13 @@ dat %>%
            accuracy=round(((totalCorr/(totalCorr+totalIncorr))*100), digits=2)) %>% 
     ggplot(aes(x=noise, y=accuracy)) +
     geom_col() +
-  labs(title = 'Accuracy at Mild noise > Severe noise')
+  labs(title = 'Accuracy at Mild noise > Severe noise',
+       x='Noise')
 ```
 
 ## Data summary
 
-```{r plot-grouped, cache=TRUE, eval=TRUE, echo=FALSE}
+```{r plot-grouped, cache=TRUE, eval=TRUE, echo=FALSE, out.width='95%'}
 dat %>% 
   group_by(., noise,cloze) %>%
   summarise(totalCorr=sum(acc==1), totalIncorr=sum(acc==0), .groups = 'keep') %>% #.groups is experimental, so mind it in future versions of dplyr
@@ -165,23 +178,23 @@ m0 <- glmer(acc ~ 1 + (cloze + noise + cloze:noise) +
 summary(m0)$coef
 ```
 
-Remember that High cloze and Mild noise conditions are the reference levels.
+> - Remember that High cloze and Mild noise conditions are the reference levels.
 
 ## Observed effect size
 
-- Interest: Noise condition, i.e., `noise2`
+> - Interest: Noise condition, i.e., `noise2`
 <!-- - The observed effect size in log odds scale is $-0.047$. -->
 
 ```{r obs_eff_size, eval=TRUE, echo=TRUE, cache=TRUE}
 fixef(m0)[3] #fixef(m0)['noise2']
 ```
 
-- The accuracy at Severe noise is lower than at Mild noise, although statistically not significant.
+> - The accuracy at Severe noise is lower than at Mild noise, although statistically not significant.
 
 ## Expected effect size
 
-- Say, we expect the main effect of noise to be 0.05.
-- Then, we assign this **effect size of interest** to the model.
+> - Say, we expect the main effect of noise to be 0.05.\
+> - Then, we assign this **effect size of interest** to the model.
 
 ```{r expected_eff_size, eval=FALSE, echo=TRUE, cache=TRUE}
 fixef(m0)['noise2'] <- 0.05 #changed from -0.04701666 to 0.05
@@ -189,6 +202,8 @@ fixef(m0)['noise2'] <- 0.05 #changed from -0.04701666 to 0.05
 # If I assume the effect size will not change in the "real data", then I'll run:
 # `fixef(m0)['noise2'] <- fixef(m0)['noise2']` instead.
 ```
+
+[Questionable: Is it theoretically driven --- changing the observed effect size?]
 
 # Power analyses
 
@@ -206,14 +221,26 @@ fit_ext_simr0  <- simr::extend(m0, #increases sample size for 'm0'
                               )
 ```
 
-- `nrow(getData(fit_ext_simr0))` = 6400
-- `nrow(getData(m0))` = 1040
+> - `nrow(getData(fit_ext_simr0))` = 6400
+> - `nrow(getData(m0))` = 1040
+
+## Increase sample size
+
+>
+To the best of our understanding, adding the rows in extend() is done via upsampling and
+is performed once before the power estimation procedure starts. Then, in the powerCurve()
+function, the rows removing is done by subsetting the “extended” model data frame to the target
+sample size deterministic (by keeping the first observations in the sample). Therefore, the same
+set of observations will be used in the SIMR power estimation procedure across all iterations when
+simulating new values of the response.\
+`r tufte::quote_footer('--- Karas and Crainiceanu (2021)')`
+
 
 ## Power analysis
 
-- To visualize the power at different sample sizes
+> - To visualize the power at different sample sizes
 
-- Power analyses from the existing model with the extended data:
+> - Refit the model to a simulated dataset:
 
 ```{r powersim, cache=FALSE, eval=FALSE, echo=TRUE}
 B_boot <- 100 # number of boot repetitions within one experiment, one setup;
@@ -225,7 +252,25 @@ noise_power0 <- simr::powerSim(fit_ext_simr0,
                                test = fixed('noise2', 'z'))
 ```
 
-- What is and why z test?
+> - Apply tests to the simulated model fit
+
+## Power analysis
+
+>
+The test will either correctly detect the effect, or make a Type II error in failing to detect the effect.\
+The power of the test is then estimated based on the proportion of successful tests.\
+`r tufte::quote_footer('--- Green and MacLoed (2016)')`
+
+<!--
+## Power analysis
+
+>
+In `simr`, the following steps are each repeated `nsim` times:\
+1. Simulate a new set of data using the fitted model provided.\
+2. Refit the model to the simulated data.\
+3. Apply a test to the simulated fit.\
+`r tufte::quote_footer('--- Green and MacLoed (2016)')`
+-->
 
 ## Power analysis
 
@@ -243,8 +288,6 @@ noise_power0
 
 - Estimate power across a pre-specified range of sample sizes.
 
-- Check if any of the pre-specified sample sizes provides 80% power for the effect size of interest.
-
 ```{r get_powercurve, echo=TRUE, eval=FALSE, cache=TRUE}
 noise_powercurve0 <- simr::powerCurve(fit_ext_simr0,
                             along = 'participants',
@@ -253,6 +296,8 @@ noise_powercurve0 <- simr::powerCurve(fit_ext_simr0,
                             progress = TRUE, 
                             test = fixed('noise2', 'z'))
 ```
+
+- Check if any of the pre-specified sample sizes provides 80% power for the effect size of interest.
 
 ## Power curve
 
@@ -270,14 +315,31 @@ knitr::include_graphics("power-curve.jpeg")
 
 ## Problems with the analysis
 
-- Problem 1: None of the pre-specified sample sizes have >80% power
-- Problem 2: Power for n=99 > Power for n=127
+> - Problem 1: None of the pre-specified sample sizes have >80% power
+> - Problem 2: Power for n=99 > Power for n=127
 
 ## Sources of the problems
 
-- Not enough simulations: Some sets of simulations might be poor fit
+> - Not enough simulations: Some simulated datasets might be poor fit
+> - Repeated measures design: Can we ignore other variables, only consider `noise2` and extend along `participants`?
+
+# Afterthoughts
+
+## Discussion
+
+- What do you consider an effect size of interest?
+    -    The units of effect size, like $\eta_{p}^{2}, \omega^{2}$, etc. are also crucial in determining the power and sample size ([Albers & Lakens, 2018](https://www.sciencedirect.com/science/article/pii/S002210311630230X?via%3Dihub)).
+- How do you calculate power wrt one (or more) effects of interest?
+
+## Resources
+
+> - https://dpaape.shinyapps.io/ipower/ (posted on *Workplace* on Sep 07, 2019)
+> - `simr` by [Green and MacLeod, 2015](https://doi.org/10.1111/2041-210X.12504)
+> - Upstrap in complex models by [Karas and Crainiceanu, 2021](https://www.biorxiv.org/content/10.1101/2021.08.21.457220v1)
+>- Follow-up bias by [Albers and Lakens, 2018](https://www.sciencedirect.com/science/article/pii/S002210311630230X?via%3Dihub)
 
 ## Test slide
 
-> - Eat eggs
-> - Drink coffee
+> - Coffee is overrated.
+> - Drink water, or tea.
+> - Just kidding ;)

@@ -262,7 +262,7 @@ And enjoy [this piece](https://www.youtube.com/watch?v=JwFNShcDlh8) titled *Hear
 
 -   We can get post-hoc power of a variable using the `powerSim` command in m0 instead of extended model as done above. Be careful why you perform post-hoc power analysis and check its critiques.
 
-- Almost everything covered in this tutorial comes from [Green and MacLeod (2015)](https://doi.org/10.1111/2041-210X.12504), and [Karas and Crainiceanu](https://github.com/martakarass/upstrap_manuscript).
+- Almost everything covered in this tutorial comes from [Green and MacLeod (2016)](https://doi.org/10.1111/2041-210X.12504), and [Karas and Crainiceanu (2021)](https://github.com/martakarass/upstrap_manuscript).
 
 <!-- -   Please do comment if you find mistakes above, or improvements can be made.
 
