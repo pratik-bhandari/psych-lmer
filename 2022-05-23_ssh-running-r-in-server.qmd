@@ -1,0 +1,224 @@
+---
+title: 'Running `R` on server'
+author: 'Pratik Bhandari'
+institute: 'PLEAD, VD-mit'
+date: '10/06/2022'
+toc: false
+format:
+  beamer:
+    incremental: false
+    slide-level: 2
+    theme: CambridgeUS
+    colortheme: dolphin
+    highlight: zenburn
+    aspectratio: 169
+---
+
+## Copy files from local machine to your coli home folder
+
+```{r, fileCopy1}
+#| eval: false
+#| echo: true
+scp -r ./analyses username@login.coli.uni-saarland.de:/home/CE/username/expt
+
+```
+
+Copying from the `analyses` folder in the local working directory to `expt` in the `login` home.
+
+A password prompt will appear. Provide the password that you use to login to your coli email.
+
+## Create a secure connection
+
+Connect to the coli login
+
+```{r, coliConnect}
+#| eval: false
+#| echo: true
+
+ssh username@login.coli.uni-saarland.de
+```
+
+Again, provide your coli login credentials as a prompt appears.
+
+## Copy files from coli login to desired server
+
+`jones-3` is just an example here.
+
+```{r, fileCopy2}
+#| eval: false
+#| echo: true
+
+scp -r username@login.coli.uni-saarland.de:/home/CE/username/expt \
+username@jones-3:/home/CE/username/expt/analysis
+```
+
+Copying from `expt` in the `coli login` to `analysis` in `jones-3` server.
+
+## Connect to the server
+
+```{r, jonesConnect}
+#| eval: false
+#| echo: true
+# From the coli login:
+
+ssh -X username@jones-3.coli.uni-saarland.de
+
+#Or:
+
+ssh jones-3
+```
+
+## Navigate to your home directory and open R
+
+Change my current working directory from `/home/CE/username` to `./expt/analysis`.\
+And open `R` in this directory.
+
+```{r, cd}
+#| eval: false
+#| echo: true
+pwd 
+cd expt/analysis
+
+R
+```
+
+
+## Find R libraries
+
+```{r, findLib}
+#| eval: false
+#| echo: true
+.libPaths()
+
+```
+
+Likely output is:
+
+```{r, showLib}
+#| eval: false
+#| echo: true
+[1] "/usr/local/lib/R/site-library"                           
+[2] "/usr/lib/R/site-library"                                 
+[3] "/usr/lib/R/library"  
+```
+
+## Add R libraries
+
+```{r, addLib}
+#| eval: false
+#| echo: true
+.libPaths(new="/local/home/CE/pratikb/R/x86_64-pc-linux-gnu-library/4.0") 
+```
+
+By this, you are adding additional path to R libraries which points to the path of `pratikb`'s libraries so that you don't have to install packages required for LMM again.  
+
+**Warning**: I haven't tried this, so can't tell if it gives any error.
+
+*Resources*:
+
+- 1: Link -- [stackoverflow-1](https://stackoverflow.com/questions/31707941/how-do-i-change-the-default-library-path-for-r-packages#31707983)
+
+- 2: Link -- [stackoverflow-2](http://stackoverflow.com/questions/40848776/ddg#40849165)
+
+- 3: Link -- [stackoverflow-3](https://stackoverflow.com/questions/15170399/change-r-default-library-path-using-libpaths-in-rprofile-site-fails-to-work)
+
+- 4: Check documentation `help(.libPaths)`
+
+## Load prerequsities for analyses
+
+<!-- Now that you have your libraries set up, and data files are already imported, you can start running analyses in `R` on the server. -->
+Load packages, data files, functions, etc. and run your analyses.
+
+```{r, load}
+#| eval: false
+#| echo: true
+
+library(lme4)
+library(dplyr)
+
+load('analyses/datfiles/dat.RData')
+source('analyses/functions/customfn.R')
+
+```
+
+**N.B.**: It is clear that the `analyses` folder that was imported from your computer to the server should have contained datafiles and functions.
+
+## Run the analyses of interest
+
+You know what to do next -- just run the good old lmer model.\
+
+```{r, runLmer}
+#| eval: false
+#| echo: true
+
+m0 <- glmer(...)
+
+```
+
+Save the model output.`\
+Export it as an RDS file (e.g. `results.RDS`), or export multiple model outputs as one .RData file.\
+Then copy them back to your computer.\
+
+## Shortcut
+
+It is not always necessary to hand-run the models in R.\
+You can write a single script with `library`, `load`, `source`, `lmer`, `save`, etc. and run it in the background.\
+
+`One potential drawback`: You might not be able to see what/where the error occurs.\
+But you can run them in small chunks anyway. Or, maybe create a custom alert message? I don't have an experience with it; it should be possible, in principle.
+
+## Copy back
+
+First copy the outputs to the coli login then to the local machine.
+
+1. Run this in the jones-3 terminal:
+
+```{r, jonestocoli}
+#| eval: false
+#| echo: true
+#| results: asis
+
+scp -r  username@jones-3.coli.uni-saarland.de:/home/CE/username/
+  expt/analyses/results.RDS \
+username@login.coli.uni-saarland.de:/home/CE/username/expt
+
+```
+
+This copies the files from the jones server to the coli login.
+
+## Copy back
+
+2. Run this in your local terminal\
+
+```{r colitolocal}
+#| eval: false
+#| echo: true
+scp -r username@login.coli.uni-saarland.de:/home/CE/username/expt ./analyses/results
+
+```
+
+This copies the files from `expt` in coli login to the local machine.
+
+## Final thoughts
+
+- Everything discussed today can be further simplified with some (?smart?) bash scripting.\
+
+- It might not always be useful to run our (?my?) analyses on the server.
+
+    - Time-effort and long-term usefulness tradeoff :wink:
+
+- Familiarizing oneself with basic bash commands is **very** helpful regardless of running R on server.
+
+- It is fun to try new things anyway :smile:
+
+**Let me know if there is anything wrong and/or to correct or improvise here.**
+
+## Resourceful people
+
+Please consult:
+
+- [Iza](https://www.uni-saarland.de/lehrstuhl/demberg/members/iza-skrjanec.html) and [Margarita](https://www.uni-saarland.de/lehrstuhl/demberg/members/rita.html) for general approach about connecting to server and R in particular respectively.
+
+- [Marian](https://www.uni-saarland.de/lehrstuhl/demberg/members/marian.html) about GUI approach to connect to the server.
+
+
