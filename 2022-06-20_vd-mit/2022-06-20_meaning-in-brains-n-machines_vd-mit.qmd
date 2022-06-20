@@ -1,0 +1,342 @@
+---
+title: '`Meaning in brains and machines: Internal activation update in large-scale language model partially reflects the N400 brain potential` '
+subtitle: 'Lindborg & Rabovsky, *P of the Ann Meet of the Cog Sci Soc*. 43 (2021)'
+author: 'Pratik Bhandari'
+date: '20/06/2022'
+toc: false
+format:
+  beamer:
+    incremental: false
+    slide-level: 2
+    theme: CambridgeUS
+    colortheme: dolphin
+    highlight: zenburn
+    aspectratio: 1610
+header-includes: |
+ \AtBeginDocument{\title[Meaning in brains and machines]{Meaning in brains and machines: Internal activation update in large-scale language model partially reflects the N400 brain potential}}
+ \AtBeginDocument{\institute[UdS]{Paper discussion (vd-mit)}}
+---
+
+## Summary of the paper
+
+GPT-2 activation updates can predict N400 amplitudes.
+
+Online semantic updates in a deep learning model and the human brain are (partially) similar.  
+
+\tiny [See also Caucheteux & King (2022) for a similar (and reverse) claim using fMRI and MEG data]
+
+## N400
+
+- A **N**egative going Event-related potential
+
+- Appears ~**400** ms after word onset
+
+```{r n400, eval=TRUE, echo=FALSE, fig.align='center', out.width="80%"}
+knitr::include_graphics("n400.png")
+```
+
+- Associated with semantic processing and meaning representation \tiny (e.g., Kutas & Federmeier, 2011)
+
+<!--
+## GPT-2
+
+\tiny GPT-2 model architecture (Vaswani et al., 2017)  
+(Stack of 36 decoder modules in this study)
+
+```{r gptarch, eval=TRUE, echo=FALSE, fig.align='center', out.width="30%"}
+knitr::include_graphics("gpt2-architecture2.png")
+```
+-->
+
+## GPT-2
+
+:::: {.columns}
+
+::: {.column width="80%"}
+```{r gptarch2, eval=TRUE, echo=FALSE, fig.align='center', out.width="50%", out.height="80%", fig.cap="GPT-2 model architecture (Vaswani et al., 2017)"}
+knitr::include_graphics("gpt2-architecture2.png")
+```
+:::
+
+::: {.column width="20%"}
+
+<html>
+<p style="text-align:left; vertical-align:middle;">Stack of 36 decoder modules is used</p>
+</html>
+
+:::
+
+::::
+
+## GPT-2
+
+- Trained with a large body of text
+
+- Isn't explicitly modeled to 'represent' meaning of the text
+
+- Has access to both past and future context (compare with a human)
+
+## This study
+
+**Q**: \underline{Does the representation of meaning in GPT-2 correspond with N400 amplitude?}
+
+  where,
+
+  <!-- representation of meaning in GPT-2 $\approx$ decoder output activation from each of the 36 decoder modules  -->
+  representation of meaning in GPT-2 $\rightarrow$ network updates $u(n)$ calculated at each 36 layer  
+
+```{r equation, eval=TRUE, echo=FALSE, fig.align='center', out.width="75%", out.height="65%", fig.cap=" "}
+knitr::include_graphics("equation_activation-updates.png")
+```
+  
+\tiny Is activation updates $a(n)$ $\approx$ output probabilities at each decoder layer?
+
+## Experiments
+
+- Quantitative experiments:
+    
+  - Presented stimuli from Frank et al. (2013, 2015) to GPT-2
+  
+  - Evaluated if GPT-2 updates predict N400, and if the effects of lexical-semantic variables on GPT-2 updates and N400 are similar  
+
+- Qualitative experiments: 
+  
+  - Tested in 4 experimental paradigms, if GPT-2 can simulate N400 effects
+
+## Quantitative experiments
+
+- Participants in the EEG study (Frank et al., 2015): n=24
+    
+- Items: 205 sentences from the UCL corpus of reading times
+    
+- Other lexical-semantic variables:
+    
+  - Log-transformed word frequency (British National Corpus)
+  - Sentence position
+  - Surprisal (*4*-gram model)
+
+## Quantitative experiments
+
+- First set of tests: if activation updates significantly predict N400 amplitudes (at each word)
+
+- Second set of tests: if lexical-semantic variables have same effect on both N400 and $u$
+
+## Quantitative experiments: Analysis 1
+
+Linear mixed effects models to test if activation updates ($u$) significantly predict N400 amplitudes (at each word)
+
+- For $j^{th}$ decoder layer ranging from 1 to 36
+  
+  - `m_j <- lmer(N400 ~ 1 + u_j + N400_baseline + 1|subject + 1|item...)` 
+  
+- Compare with a base model
+  
+  - `m0 <- lmer(N400 ~ 1 + N400_baseline + 1|subject + 1|item...)`
+
+## Quantitative experiments: Result 1
+
+- The effect of $u$ was significant in 31 models;
+  
+  - largest in the "deep intermediate layers 21-25"; non-significant in the outer layers
+
+```{r lmesig1, eval=TRUE, echo=FALSE, fig.align='center', out.width="65%", out.height="65%", fig.cap="Significant LME by GPT-2 layers"}
+knitr::include_graphics("lme-results-1.png")
+```
+
+## Quantitative experiments: Analysis 2
+
+<!-- Linear mixed effects models to test if lexical frequency, sentence position, and lexical surprisal have same effect on both N400 and $u$ -->
+
+- Predicting N400 from three lexical-semantic variables
+  
+  - `m_f <- lmer(-1*N400 ~ 1 + N400_baseline + frequency + 1|subject + 1|item...)` 
+  - `m_p <- lmer(-1*N400 ~ 1 + N400_baseline + position + 1|subject + 1|item...)` 
+  - `m_s <- lmer(-1*N400 ~ 1 + N400_baseline + surprisal + 1|subject + 1|item...)` 
+  
+- Predicting activation updates at each decoder layer from three lexical-semantic variables
+  
+  - `m_j_f <- lmer(u_j ~ 1 + frequency + 1|item...)` 
+  - `m_j_p <- lmer(u_j ~ 1 + position + 1|item...)` 
+  - `m_j_s <- lmer(u_j ~ 1 + surprisal + 1|item...)` 
+  
+- Compared the significance of the effect and direction of lexical-semantic variables on N400 and activation updates
+
+## Quantitative experiments: Result 2 (Effects of lexical-semantic variables)
+
+
+- On N400: Significant effects only of *surprisal* and *sentence position*
+
+- On activation updates: Significant effects also of *lexical frequency*
+  - Non-sigificant effect only of surprisal in the *deep layers* 32-36
+
+```{r lmesig2, eval=TRUE, echo=FALSE, fig.align='center', out.width="55%", out.height="60%", fig.cap="Regression coefficients for lexical-semantic predictors at all GPT-2 layers"}
+knitr::include_graphics("lme-results-22.png")
+```
+
+## What does it mean?
+
+- Surprisal effects not significant in the deep layers  
+  
+  - Contrast with N400 + P600 effects, i.e., late processing \tiny (e.g., Brouwer et al., 2021)  
+  
+
+## Qualitative experiments
+
+Can GPT-2 activation updates simulate N400 effects in 4 experimental paradigms?
+
+```{r qualparadigm, eval=TRUE, echo=FALSE, fig.align='center', out.width="60%", out.height="60%", fig.cap=""}
+knitr::include_graphics("qual-expt.png")
+```
+
+## Qualitative experiment: Semantic violations
+
+Incongruent > Congruent  
+
+- Congruent: *I take my coffee with cream and sugar.*  
+- Violation (aka Incongruent): *I take my coffee with cream and dog.*  
+
+
+## Qualitative experiment: Cloze probability
+
+Unexpected > Expected  
+
+- Expected: *The children went outside to play.*  
+- Unexpected: *The children went outside to talk.*  
+
+
+## Qualitative experiment: Reversal anomalies
+
+Incongruent > Reversal $\geq$ Congruent  
+
+- Congruent: *For breakfast, the boys would only eat ...*  
+- Reversal anomaly: *For breakfast, the eggs would only eat ...*  
+- Inongruent: *For breakfast, the boys would only plant ...*  
+
+
+## Qualitative experiment: Priming
+
+Unrelated > Related  
+
+- Related: *school-university*  
+- Unrelated: *school-lip*  
+
+## Qualitative experiments: Results
+
+- Deep intermediate layers activation updates approximate N400 effects for *semantic violation* (experiment 1)
+
+  - Fewer layers for *cloze probability* (experiment 2)
+  
+```{r qualplot1, eval=TRUE, echo=FALSE, fig.align='center', out.width="80%", out.height="80%", fig.cap="Normalized scores (activation updates) across experimental conditions at all GPT-2 layers. Dotted lines show layers where significant effects were found."}
+knitr::include_graphics("qualitative-results.png")
+```
+
+## What does it mean?
+
+- Similar to "*activation predicts N400*" in *surprisal* (Quantitative experiment) 
+  
+- Gradual built-up of meaning starting from the outer layers, although, no 'graduality' in the architecture
+  
+  - Meaning representation significant only in the intermediate deep layers?  
+      - Again, absent in the deep layers 30+
+
+
+## Qualitative experiments: Results
+
+- Deep layers for *reversal anomalies* (experiment 3), but incongruent > reversal effect not significant
+  
+```{r qualplot2, eval=TRUE, echo=FALSE, fig.align='center', out.width="80%", out.height="80%", fig.cap="Normalized scores (activation updates) across experimental conditions at all GPT-2 layers. Dotted lines show layers where significant effects were found."}
+knitr::include_graphics("qualitative-results.png")
+```
+
+## Qualitative experiments: Results
+
+- Unrelated > Related effect (experiment 4) significant at *all* layers
+  
+```{r qualplot3, eval=TRUE, echo=FALSE, fig.align='center', out.width="80%", out.height="80%", fig.cap="Normalized scores (activation updates) across experimental conditions at all GPT-2 layers. Dotted lines show layers where significant effects were found."}
+knitr::include_graphics("qualitative-results.png")
+```
+
+## What does it mean?
+
+- Priming effect: too low activation for unrelated words across all layers although GPT-2 is trained on words(?)  
+  
+  - Contrast with Expt 1 and 2 in which separate activation is not displayed for con/incong; unexp/exp.
+  
+  <!-- - Learns 'meaning' at the word level? $\Leftarrow$ consequence of 'attention'?   -->
+
+## Discussion
+
+- Relatively modest claim offered by the authors  
+
+- Today's behavioral and neural measures are still coarse grained  
+
+- Large language models' can model human language processing  
+  but it is a statistical similarity rather than the analogy of human lang. proc.  
+  
+
+<!--
+## Final thoughts
+
+- Everything discussed today can be further simplified with some (?smart?) bash scripting.\
+
+- It might not always be useful to run our (?my?) analyses on the server.
+
+    - Time-effort and long-term usefulness tradeoff :wink:
+
+-->
+
+<!--
+Heirarchy of auditory processing vs layers of GPT2
+in contrast to
+visual processing layers in the cortex vs deep learning models
+
+GPT2 has both right and left context, humans only have left context
+
+Hemispheric differences
+
+[GPT-2 attention visualization](https://towardsdatascience.com/openai-gpt-2-understanding-language-generation-through-visualization-8252f683b2f8)
+[A brief overview of attention mechanism](https://medium.com/syncedreview/a-brief-overview-of-attention-mechanism-13c578ba9129)
+[Attention? Attention!](https://lilianweng.github.io/posts/2018-06-24-attention/)
+
+[Details on transformer architecture](https://towardsdatascience.com/examining-the-transformer-architecture-part-1-the-openai-gpt-2-controversy-feceda4363bb)
+
+[NY times, Google fires an engineer](https://www.nytimes.com/2022/06/12/technology/google-chatbot-ai-blake-lemoine.html)
+[Interview -- Is LaMDA sentient?](https://cajundiscordian.medium.com/is-lamda-sentient-an-interview-ea64d916d917)
+
+-->
+
+
+<!-- - Effects on N400 
+  - Surprisal: significant; positive coefficient
+  - Sentence position: significant; negative coefficient
+  - Lexical frequency: non-significant; negative coefficient
+
+- Effects on activation updates
+  - Significant except for surprisal in layers 31-35
+  - Same direction as N400 for all variables
+  
+
+- Deep intermediate layers activation updates approximate N400 effects for *semantic violation* (experiment 1)
+
+  - Fewer layers for *cloze probability* (experiment 2)
+
+- Deep layers for *reversal anomalies* (experiment 3), but incongruent > reversal effect n.s.
+
+- Unrelated > Related effect (experiment 4) significant at all layers
+
+```{r lmesigX, eval=TRUE, echo=FALSE, fig.align='center', out.width="60%", out.height="60%", fig.cap="Significant LME by GPT-2 layers"}
+knitr::include_graphics("lme-results-22.png")
+```
+
+## Quantitative experiments: What do they say?
+
+- Activation updates in the deep-intermediate layers, but not in the outer layers, predict N400 effects
+
+- Sentence position
+
+--**
+
+Same or different data generating process? Different models can produce same data?
+
+Which stage of GPT architecture corresponds with meaning representation?
+-->
