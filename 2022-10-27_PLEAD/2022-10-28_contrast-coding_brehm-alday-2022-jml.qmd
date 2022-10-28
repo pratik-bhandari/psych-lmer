@@ -12,6 +12,7 @@ format:
     colortheme: dolphin
     highlight: zenburn
     aspectratio: 1610
+    linkcolor: "blue"
 header-includes: |
  \AtBeginDocument{\title[Contrast coding]{Contrast coding choices in a decade of mixed models}}
  \AtBeginDocument{\institute[UdS]{Paper discussion (PLEAD @ vd-mit)}}
@@ -195,7 +196,7 @@ At the level of Fork for Utensils, and Salad for Foods.
 #|eval: true
 #|echo: true
 ds[ds$Food=='Salad',] %>% group_by(Utensils) %>% 
-  summarise(r= mean(RT)) %>% knitr::kable() #UtensilsSpoon
+  summarise(rt= mean(RT)) %>% knitr::kable() #UtensilsSpoon
 ```
 \vspace{1em}
 9.87-4.81 = 5.06
@@ -211,15 +212,15 @@ ds[ds$Food=='Salad',] %>% group_by(Utensils) %>%
 #|eval: true
 #|echo: true
 ds[ds$Utensils=='Fork',] %>% group_by(Foods) %>% 
-  summarise(r= mean(RT)) #FoodsSoup
+  summarise(rt= mean(RT)) %>% knitr::kable() #FoodsSoup
 ```
 \vspace{1em}
 9.94-4.81 = 5.13
 :::
 
 ::::
-
-These numbers match with the beta estimates of `UtensilsSpoon` and `FoodsSoup` respectively.
+\vspace{1.2em}
+These numbers match with the beta estimates of `UtensilsSpoon` and `FoodsSoup` (in *m1*) respectively.
 
 ## Case study
 
@@ -245,10 +246,9 @@ Significant `Utensils:Foods` -- slower to eat salad with a spoon & soup with a f
 
 - *m2* (`Utensils[S.Fork]:Foods[S.Salad]`) : $\beta$=-2.5, t=-35.5
 
-::: callout-important
-## About interactions
-
-Doesn't an interaction represent the difference between differences, without informing which one of the two differences is significant or greater than the other, and without showing the direction of the differences?
+::: callout-note
+How to interpret interactions given the presence or absence of the main effects?
+Also, doesn't an interaction show the *difference between differences*?
 :::
 
 ## Case study: Demonstrated problem
@@ -267,12 +267,6 @@ Well enough for reconstruction / reproduction?
 Change over time in the last decade
 
 Differences across sub-domains and journals
-
-<!--Word search: *contrast, code, level, reference, treatment, dummy*
-
-Non-sense coding (e.g., polynomial contrast for a two-level factor) included
-
-Nuisance: performed contrast coding, centered variable-->
 
 ## Meta-analysis
 
@@ -332,7 +326,7 @@ What's the place of pre-prints and post-publication reviews in quality control?
 
 `glmKey <- glmer(ContrastsUse ~ K + (1 |Journal) + (1|Year), ...`
 
-- Contrast coding same as earlier
+- Contrast coding is the same as earlier
     - Grand mean in the intercept
     - Median level: *language production* as the reference
 
@@ -415,3 +409,18 @@ $\gtrsim$ 40% of the papers with these keywords are 'problematic':
 
 - Gelman's wise words (?): Papers are ads for the research encased in data and code
 
+## Key references
+
+- [Baayen, Davidson, & Bates, 2008](https://doi.org/10.1016/j.jml.2007.12.005)
+
+- [Brehm & Alday, 2022](https://osf.io/jkpxt/)
+
+- [Gelman, 2005](https://doi.org/10.1214/009053604000001048)
+
+- [Jaeger, 2008](https://doi.org/10.1016/j.jml.2007.11.007)
+
+- [Schad et al., 2020](https://doi.org/10.1016/j.jml.2019.104038)
+
+- [Vasishth et al., 2022](https://vasishth.github.io/Freq_CogSci/nonOrthogonal.html#the-role-of-the-intercept-in-non-centered-contrasts)
+
+- [UCLA Statistical Computing Group](https://stats.oarc.ucla.edu/r/library/r-library-contrast-coding-systems-for-categorical-variables/)
